@@ -1074,18 +1074,16 @@ decode_ts_ext_info(Bin0, SoFar0 = #ts_info{}) ->
     maybe([
         fun(Bin, SoFar) ->
             case Bin of
-                <<Af:16/little, Len:16/little, AddrStringZero:Len/binary, Rest/binary>> ->
+                <<Af:16/little, Len:16/little, AddrString:Len/binary, Rest/binary>> ->
                     case Af of
                         16#00 ->
                             {continue, [Rest, SoFar]};
                         16#02 ->
-                            [AddrString | _] = binary:split(AddrStringZero, <<0>>),
-                            {ok, IP} = inet:parse_ipv4_address(binary_to_list(AddrString)),
-                            {continue, [Rest, SoFar#ts_info{client_address = IP}]};
+                            % ipv4
+                            {continue, [Rest, SoFar#ts_info{client_address = AddrString}]};
                         16#17 ->
-                            [AddrString | _] = binary:split(AddrStringZero, <<0>>),
-                            {ok, IP} = inet:parse_ipv6_address(binary_to_list(AddrString)),
-                            {continue, [Rest, SoFar#ts_info{client_address = IP}]};
+                            % ipv6
+                            {continue, [Rest, SoFar#ts_info{client_address = AddrString}]};
                         _ ->
                             {return, {error, {bad_client_af, Af}}}
                     end;
